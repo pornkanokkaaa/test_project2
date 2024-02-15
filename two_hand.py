@@ -6,6 +6,7 @@ import os
 import pickle
 import mediapipe as mp
 import cv2
+import pandas as pd
 
 mp_holistic = mp.solutions.holistic
 num_landmarks = 21
@@ -54,15 +55,10 @@ for dir_ in os.listdir(DATA_DIR):
 
                 data_left_aux.append(x - min(x_left))
                 data_left_aux.append(y - min(y_left))
-
-        #     # วาด landmark มือซ้าย
-        #     img_left = img.copy()  
-        #     mp_drawing.draw_landmarks(img_left, left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        #     cv2.imshow('Left Hand', img_left)
         else:
-            print("not find left hand")
+            data_left_aux = [0.999] * 42
+            # print(data_left_aux)
         data_left.append(data_left_aux)
-        # #print(data_left)
 
         ############# มือขวา ##############
         if results.right_hand_landmarks is not None:
@@ -77,21 +73,14 @@ for dir_ in os.listdir(DATA_DIR):
 
                 data_right_aux.append(x - min(x_right))
                 data_right_aux.append(y - min(y_right))
-
-        #     # วาด landmark มือขวา
-        #     img_right = img.copy()  
-        #     mp_drawing.draw_landmarks(img_right, right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-        #     cv2.imshow('Right Hand', img_right)
         else:
-            print("not find right hand")
-        data_right.append(data_right_aux)
-        # # print(data_right)
+            data_right_aux = [0.999] * 42
+            # print(data_right_aux)
 
+        data_right.append(data_right_aux)
         labels.append(dir_)
 
-        # # แสดงรูปภาพ
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+
 
 f_left = open('data_left_hand.pickle', 'wb')
 pickle.dump({'data': data_left, 'labels': labels}, f_left)

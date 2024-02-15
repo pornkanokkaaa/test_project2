@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd  # เพิ่ม import
 
-data_dict = pickle.load(open('./data_left_hand.pickle', 'rb'))
+data_dict = pickle.load(open('./data_right_hand.pickle', 'rb'))
 
 data = np.asarray(data_dict['data'])
 labels = np.asarray(data_dict['labels'])
@@ -65,7 +65,7 @@ plt.show()
 # sb.pairplot(data_sb, hue='labels', height=2)
 # plt.show()
 
-f = open('model_left.p', 'wb')
+f = open('model_right.p', 'wb')
 pickle.dump({'model': model}, f)
 f.close()
 

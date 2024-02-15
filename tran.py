@@ -25,7 +25,8 @@ holistic = mp_holistic.Holistic(
     min_tracking_confidence=0.5,
 )
 
-labels_dict = {1: '001', 2: '002', 3: '003'}
+labels_dict_left = {1: '001', 2: '002', 3: '003', 4: '004'}
+labels_dict_right = {1: '001', 2: '002', 3: '003', 4: '004'}
 data__left = []
 joined_data_left = ''
 data_left = []
@@ -34,11 +35,12 @@ data__right = []
 joined_data_right = ''
 data_right = []
 massage_right = ''
-prev_hand_state = None
+# prev_hand_state = None
 
 while(cap.isOpened()):
 
-    data_aux = []
+    data_aux_left = []
+    data_aux_right = []
     x_left = []
     y_left = []
     x_right = []
@@ -72,11 +74,8 @@ while(cap.isOpened()):
             x_left.append(x)
             y_left.append(y)
 
-        for i in range(len(left_hand_landmarks.landmark)):
-            x = left_hand_landmarks.landmark[i].x
-            y = left_hand_landmarks.landmark[i].y
-            data_aux.append(x - min(x_left))
-            data_aux.append(y - min(y_left))
+            data_aux_left.append(x - min(x_left))
+            data_aux_left.append(y - min(y_left))
 
         x1 = int(min(x_left) * W) - 10
         y1 = int(min(y_left) * H) - 10
@@ -84,53 +83,76 @@ while(cap.isOpened()):
         x2 = int(max(x_left) * W) - 10
         y2 = int(max(y_left) * H) - 10
 
-        prediction = model_left.predict([np.asarray(data_aux)])
-        predicted_character = labels_dict[int(prediction[0])]
+        prediction = model_left.predict([np.asarray(data_aux_left)])
+        predicted_character = labels_dict_left[int(prediction[0])]
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
         cv2.putText(frame, predicted_character, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,255,255), 2,
                     cv2.LINE_AA)
         
         data_left.append(predicted_character)
-        print(data_left)
         massage_left = ''.join(data_left) 
-        print(massage_left)
 
-        for i in range(0, len(predicted_character), 3):
-            substring = predicted_character[i:i+3]
-            if substring not in data__left:
-                data__left.append(substring)
+        # for i in range(0, len(predicted_character), 3):
+        #     substring = predicted_character[i:i+3]
+        #     if substring not in data__left:
+        #         data__left.append(substring)
 
-        joined_data_left = ''.join(data__left) 
-        print(joined_data_left)
+        # joined_data_left = ''.join(data__left) 
+        # print(joined_data_left)
+        # print(massage_left)
 
-    #รหัส A คือหมวดท่าทาง 1
-    A00 = '000'
-    A01 = '001'
-    A02 = '002'
-    A03 = '003'
-    A04 = '004'
-    A05 = '005'
-    A06 = '006'
-    A07 = '007'
-    A08 = '008'
-    A10 = '010'
-    A11 = '011'
+    else :
+        data_aux_left = [0.999] * 42       
+        prediction = model_left.predict([np.asarray(data_aux_left)])
+        predicted_character = labels_dict_left[int(prediction[0])]       
+        
+        data_left.append(predicted_character)
+        massage_left = ''.join(data_left) 
 
-    # รหัส Q คือคำแปล
-    Q00 = '000'#ฉัน
-    Q01 = '001'#คุณ
-    Q02 = '002' + '003'#ตาย
-    Q03 = '005' + '006'#อมยา
-    Q04 = '006' + '008'#หมอ
-    Q05 = '006' + '007'+'008'#หมอ
-    Q051 = '006007007007007007007007008'
-    Q06 = '009010009010' #เป็นหวัด
-    Q07 = '011012' #ตาแดง
-    Q08 = '011013' #มึนหัว
-    Q09 = '001004' #ฉีดยา
-    Q10 = '009010009010'
-    print(joined_data_left)
+        # for i in range(0, len(predicted_character), 3):
+        #     substring = predicted_character[i:i+3]
+        #     if substring not in data__left:
+        #         data__left.append(substring)
+
+        # joined_data_left = ''.join(data__left) 
+        # print(joined_data_left)
+        # print(massage_left)
+     
+     # มือขวาของแพ้อาหาร 
+    if '001001001001002' and '002003' in massage_left :
+        left_hand = True 
+    else :
+        left_hand = False
+
+
+    # #รหัส A คือหมวดท่าทาง 1
+    # A00 = '000'
+    # A01 = '001'
+    # A02 = '002'
+    # A03 = '003'
+    # A04 = '004'
+    # A05 = '005'
+    # A06 = '006'
+    # A07 = '007'
+    # A08 = '008'
+    # A10 = '010'
+    # A11 = '011'
+
+    # # รหัส Q คือคำแปล
+    # Q00 = '000'#ฉัน
+    # Q01 = '001'#คุณ
+    # Q02 = '002' + '003'#ตาย
+    # Q03 = '005' + '006'#อมยา
+    # Q04 = '006' + '008'#หมอ
+    # Q05 = '006' + '007'+'008'#หมอ
+    # Q051 = '006007007007007007007007008'
+    # Q06 = '009010009010' #เป็นหวัด
+    # Q07 = '011012' #ตาแดง
+    # Q08 = '011013' #มึนหัว
+    # Q09 = '001004' #ฉีดยา
+    # Q10 = '009010009010'
+    # print(joined_data_left)
 
 
     ######### มือขวา #########
@@ -147,8 +169,8 @@ while(cap.isOpened()):
         for i in range(len(right_hand_landmarks.landmark)):
             x = right_hand_landmarks.landmark[i].x
             y = right_hand_landmarks.landmark[i].y
-            data_aux.append(x - min(x_right))
-            data_aux.append(y - min(y_right))
+            data_aux_right.append(x - min(x_right))
+            data_aux_right.append(y - min(y_right))
 
         x1 = int(min(x_right) * W) - 10
         y1 = int(min(y_right) * H) - 10
@@ -156,67 +178,87 @@ while(cap.isOpened()):
         x2 = int(max(x_right) * W) - 10
         y2 = int(max(y_right) * H) - 10
 
-        prediction = model_right.predict([np.asarray(data_aux)])
-        predicted_character = labels_dict[int(prediction[0])]
+        prediction = model_right.predict([np.asarray(data_aux_right)])
+        predicted_character = labels_dict_right[int(prediction[0])]
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,255), 2)
         cv2.putText(frame, predicted_character, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,255,255), 2,
                     cv2.LINE_AA)
         
         data_right.append(predicted_character)
-        print(data_right)
         massage_right = ''.join(data_right) 
+
+        # for i in range(0, len(predicted_character), 3):
+        #     substring = predicted_character[i:i+3]
+        #     if substring not in data__right:
+        #         data__right.append(substring)
+
+        # joined_data_right = ''.join(data__right) 
+        # print(joined_data_right)
+        # print(massage_right)
+    else:
+        data_aux_right = [0.999] * 42 
+        prediction = model_right.predict([np.asarray(data_aux_right)])
+        predicted_character = labels_dict_right[int(prediction[0])]
+
+        data_right.append(predicted_character)
+        massage_right = ''.join(data_right) 
+
+        # for i in range(0, len(predicted_character), 3):
+        #     substring = predicted_character[i:i+3]
+        #     if substring not in data__right:
+        #         data__right.append(substring)
+
+        # joined_data_right = ''.join(data__right) 
+        # print(joined_data_right)
         print(massage_right)
 
-        for i in range(0, len(predicted_character), 3):
-            substring = predicted_character[i:i+3]
-            if substring not in data__right:
-                data__right.append(substring)
+    # มือซ้ายของแพ้อาหาร
+    if '0001002' and '002003003003003003003' in massage_right :
+        right_hand = True 
+    else :
+        right_hand = False
 
-        joined_data_right = ''.join(data__right) 
-        print(joined_data_right)
+    #     #รหัส A คือหมวดท่าทาง 1
+    # A00 = '000'
+    # A01 = '001'
+    # A02 = '002'
+    # A03 = '003'
+    # A04 = '004'
+    # A05 = '005'
+    # A06 = '006'
+    # A07 = '007'
+    # A08 = '008'
+    # A10 = '010'
+    # A11 = '011'
 
-        #รหัส A คือหมวดท่าทาง 1
-    A00 = '000'
-    A01 = '001'
-    A02 = '002'
-    A03 = '003'
-    A04 = '004'
-    A05 = '005'
-    A06 = '006'
-    A07 = '007'
-    A08 = '008'
-    A10 = '010'
-    A11 = '011'
-
-    # รหัส Q คือคำแปล
-    Q000 = '000' + '001' + '002'
-    Q00 = '000'#ฉัน
-    Q01 = '001'#คุณ
-    Q02 = '002' + '003'#ตาย
-    Q03 = '005' + '006'#อมยา
-    Q04 = '006' + '008'#หมอ
-    Q05 = '006' + '007'+'008'#หมอ
-    Q051 = '006007007007007007007007008'
-    Q06 = '009010009010' #เป็นหวัด
-    Q07 = '011012' #ตาแดง
-    Q08 = '011013' #มึนหัว
-    Q09 = '001004' #ฉีดยา
-    Q10 = '009010009010'
-    print(joined_data_right)
+    # # รหัส Q คือคำแปล
+    # Q000 = '000' + '001' + '002'
+    # Q00 = '000'#ฉัน
+    # Q01 = '001'#คุณ
+    # Q02 = '002' + '003'#ตาย
+    # Q03 = '005' + '006'#อมยา
+    # Q04 = '006' + '008'#หมอ
+    # Q05 = '006' + '007'+'008'#หมอ
+    # Q051 = '006007007007007007007007008'
+    # Q06 = '009010009010' #เป็นหวัด
+    # Q07 = '011012' #ตาแดง
+    # Q08 = '011013' #มึนหัว
+    # Q09 = '001004' #ฉีดยา
+    # Q10 = '009010009010'
+    # print(joined_data_right)
 
 
 
 
 
        
-    ########## Diad ########
-    if Q000 in joined_data_left :
+    ########### แพ้อาหาร ########
+    if left_hand == True and right_hand == True :
         frame_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         draw = ImageDraw.Draw(frame_pil)
-        draw.text((70, 5), "ทดสอบ", font=font, fill=(255, 255, 255))
+        draw.text((70, 5), "แพ้อาหาร", font=font, fill=(255, 255, 255))
         frame = cv2.cvtColor(np.array(frame_pil), cv2.COLOR_RGB2BGR)
-        # print(f'Dead')
 
     # ######### อมยา ########
     # if Q03 in joined_data :
