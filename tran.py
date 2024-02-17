@@ -12,10 +12,17 @@ model_left = model_dict_left['model']
 model_dict_right = pickle.load(open('./model_right.p', 'rb'))
 model_right = model_dict_right['model']
 
+model_dict_ud_angle = pickle.load(open('./model_ud_angle.p', 'rb'))
+model_ud_angle = model_dict_ud_angle['model']
+
+model_dict_bt_angle = pickle.load(open('./model_bt_angle.p', 'rb'))
+model_bt_angle = model_dict_bt_angle['model']
+
 
 cap = cv2.VideoCapture()
 cap.open('vdo/DDD.mov') 
 mp_holistic = mp.solutions.holistic
+mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
@@ -25,16 +32,41 @@ holistic = mp_holistic.Holistic(
     min_tracking_confidence=0.5,
 )
 
+pose = mp_pose.Pose(
+    static_image_mode=True,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5,
+)
+
+def calculate_angle(a,b,c):
+    a = np.array(a)
+    b = np.array(b)
+    c = np.array(c)
+
+    radians = np.arctan2(c[1]-b[1],c[0]-b[0])-np.arctan2(a[1]-b[1],a[0]-b[0])
+    angle = np.abs(radians*180.0/np.pi)
+
+    if angle > 180.0:
+        angle =  360 - angle
+    return angle
+
+
 labels_dict_left = {1: '001', 2: '002', 3: '003', 4: '004'}
 labels_dict_right = {1: '001', 2: '002', 3: '003', 4: '004'}
-data__left = []
-joined_data_left = ''
+labels_dict_ud_angle = {1: '001', 2: '002', 3: '003', 4: '004'}
+labels_dict_bt_angle = {1: '001', 2: '002', 3: '003', 4: '004'}
+# data__left = []
+# joined_data_left = ''
 data_left = []
 massage_left = ''
-data__right = []
-joined_data_right = ''
+# data__right = []
+# joined_data_right = ''
 data_right = []
 massage_right = ''
+data_ud_angle = []
+massage_ud_angle = ''
+data_bt_angle = []
+massage_bt_angle = ''
 # prev_hand_state = None
 
 while(cap.isOpened()):
@@ -51,7 +83,8 @@ while(cap.isOpened()):
      H, W, _ = frame.shape
 
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = holistic.process(frame_rgb)
+    results_holistic = holistic.process(frame_rgb)
+    results_pose = pose.process(frame_rgb)
 
     # # หายตามมือ
     # hand_state = "OPEN" if results.multi_hand_landmarks else "CLOSED"
@@ -64,8 +97,8 @@ while(cap.isOpened()):
 
 
     ######### มือซ้าย #########
-    if results.left_hand_landmarks is not None:
-        left_hand_landmarks = results.left_hand_landmarks
+    if results_holistic.left_hand_landmarks is not None:
+        left_hand_landmarks = results_holistic.left_hand_landmarks
 
         for i in range(len(left_hand_landmarks.landmark)):
             x = left_hand_landmarks.landmark[i].x
@@ -156,8 +189,8 @@ while(cap.isOpened()):
 
 
     ######### มือขวา #########
-    if results.right_hand_landmarks is not None:
-        right_hand_landmarks = results.right_hand_landmarks
+    if results_holistic.right_hand_landmarks is not None:
+        right_hand_landmarks = results_holistic.right_hand_landmarks
 
         for i in range(len(right_hand_landmarks.landmark)):
             x = right_hand_landmarks.landmark[i].x
@@ -211,7 +244,7 @@ while(cap.isOpened()):
 
         # joined_data_right = ''.join(data__right) 
         # print(joined_data_right)
-        print(massage_right)
+        # print(massage_right)
 
     # มือซ้ายของแพ้อาหาร
     if '0001002' and '002003003003003003003' in massage_right :
@@ -249,7 +282,57 @@ while(cap.isOpened()):
     # print(joined_data_right)
 
 
+    ###### มุมบน #######
+    if results_pose.pose_landmarks is not None:
+        pose_landmarks = results_pose.pose_landmarks.landmark
+            
+        # left 
+        shoulder_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        elbow_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+        wrist_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
 
+        # right
+        shoulder_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        elbow_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+        wrist_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+
+        left_arm_angle1 = calculate_angle(shoulder_left, elbow_left, wrist_left)
+        right_arm_angle1 = calculate_angle(shoulder_right, elbow_right, wrist_right)
+        under_angle = [left_arm_angle1,right_arm_angle1]
+        # print("under", under_angle)
+        
+        prediction = model_ud_angle.predict([np.asarray(under_angle)])
+        predicted_character = labels_dict_ud_angle[int(prediction[0])]
+        
+        data_ud_angle.append(predicted_character)
+        massage_ud_angle = ''.join(data_ud_angle) 
+        print(massage_ud_angle)
+
+     ######## มุมล่าง ######## 
+    if results_pose.pose_landmarks is not None:
+        pose_landmarks = results_pose.pose_landmarks.landmark
+            
+            # left 
+        shoulder_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+        elbow_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        wrist_left = [pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+
+            # right
+        shoulder_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+        elbow_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+        wrist_right = [pose_landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x, pose_landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+
+        left_arm_angle2 = calculate_angle(shoulder_left, elbow_left, wrist_left)
+        right_arm_angle2 = calculate_angle(shoulder_right, elbow_right, wrist_right)
+        bottom_angle = [left_arm_angle2,right_arm_angle2]
+        # print("bottom", bottom_angle)
+
+        prediction = model_bt_angle.predict([np.asarray(bottom_angle)])
+        predicted_character = labels_dict_bt_angle[int(prediction[0])]
+    
+        data_bt_angle.append(predicted_character)
+        massage_bt_angle = ''.join(data_ud_angle) 
+        print(massage_bt_angle)
 
 
        
