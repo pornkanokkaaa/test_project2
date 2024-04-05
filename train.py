@@ -8,7 +8,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd  # เพิ่ม import
 
-data_dict = pickle.load(open('./data_right_hand.pickle', 'rb'))
+######## เทรนแยก #######
+
+data_dict = pickle.load(open('./data_left_hand.pickle', 'rb'))
 
 data = np.asarray(data_dict['data'])
 labels = np.asarray(data_dict['labels'])
@@ -25,12 +27,12 @@ score = accuracy_score(y_predict, y_test)
 
 print('{}% of samples were classified correctly!'.format(score * 100))
 
-# ใช้ seaborn และ matplotlib ถูกต้อง
-df = pd.DataFrame(data, columns=[f'feature_{i}' for i in range(data.shape[1])])
-df['labels'] = labels
-sns.set()
-sns.pairplot(df, hue='labels',vars=['feature_10', 'feature_11'], height=2)
-plt.show()
+# # ใช้ seaborn และ matplotlib ถูกต้อง
+# df = pd.DataFrame(data, columns=[f'feature_{i}' for i in range(data.shape[1])])
+# df['labels'] = labels
+# sns.set()
+# sns.pairplot(df, hue='labels',vars=['feature_10', 'feature_11'], height=2)
+# plt.show()
 
 
 
@@ -65,7 +67,19 @@ plt.show()
 # sb.pairplot(data_sb, hue='labels', height=2)
 # plt.show()
 
-f = open('model_right.p', 'wb')
+# f = open('model_ud_angle.p', 'wb')
+# pickle.dump({'model': model}, f)
+# f.close()
+
+# f = open('model_bt_angle.p', 'wb')
+# pickle.dump({'model': model}, f)
+# f.close()
+
+# f = open('model_right.p', 'wb')
+# pickle.dump({'model': model}, f)
+# f.close()
+
+f = open('model_left.p', 'wb')
 pickle.dump({'model': model}, f)
 f.close()
 

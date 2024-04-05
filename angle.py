@@ -3,6 +3,9 @@ import mediapipe as mp
 import math
 import numpy as np
 
+
+
+####### มุม ########
 mp_pose = mp.solutions.pose
 
 imgg = cv2.imread("data/2/2 - Copy (2).jpg")
